@@ -1,0 +1,81 @@
+<!-- 
+  Custom Wazuh Rules for ML Network Intrusion & Cyber Attack Detection
+  Place in /var/ossec/etc/rules/local_rules.xml on Wazuh Manager
+-->
+
+<group name="ml_nids,network_attack,">
+
+  <!-- Base Rule: Catch all ML NIDS events -->
+  <rule id="100200" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="ml_nids.decision">ANOMALY</field>
+    <description>ML-NIDS: Network anomaly identified by machine learning engine</description>
+    <group>ml_anomaly,pci_dss_10.6.1,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- Probe / Reconnaissance Alert -->
+  <rule id="100201" level="8">
+    <if_sid>100200</if_sid>
+    <field name="ml_nids.predicted_attack">Probe</field>
+    <description>ML-NIDS: Reconnaissance / Port-scanning activity detected from $(ml_nids.src_ip)</description>
+    <mitre>
+      <id>T1046</id>
+      <tactic>Discovery</tactic>
+      <technique>Network Service Discovery</technique>
+    </mitre>
+    <group>recon,scan,</group>
+  </rule>
+
+  <!-- DoS Attack Alert -->
+  <rule id="100202" level="10">
+    <if_sid>100200</if_sid>
+    <field name="ml_nids.predicted_attack">DoS</field>
+    <description>ML-NIDS: Denial of Service attack detected against $(ml_nids.dst_ip):$(ml_nids.dst_port) from $(ml_nids.src_ip)</description>
+    <mitre>
+      <id>T1499</id>
+      <tactic>Impact</tactic>
+      <technique>Endpoint Denial of Service</technique>
+    </mitre>
+    <group>dos,flood,</group>
+  </rule>
+
+  <!-- R2L (Remote to Local) Alert -->
+  <rule id="100203" level="12">
+    <if_sid>100200</if_sid>
+    <field name="ml_nids.predicted_attack">R2L</field>
+    <description>ML-NIDS: Remote-to-Local exploitation attempt against $(ml_nids.dst_ip) from $(ml_nids.src_ip)</description>
+    <mitre>
+      <id>T1190</id>
+      <tactic>Initial Access</tactic>
+      <technique>Exploit Public-Facing Application</technique>
+    </mitre>
+    <group>exploit,initial_access,</group>
+  </rule>
+
+  <!-- U2R (User to Root) Alert -->
+  <rule id="100204" level="14">
+    <if_sid>100200</if_sid>
+    <field name="ml_nids.predicted_attack">U2R</field>
+    <description>ML-NIDS: Critical User-to-Root privilege escalation attempt on $(ml_nids.dst_ip)</description>
+    <mitre>
+      <id>T1068</id>
+      <tactic>Privilege Escalation</tactic>
+      <technique>Exploitation for Privilege Escalation</technique>
+    </mitre>
+    <group>privilege_escalation,root_exploit,</group>
+  </rule>
+
+  <!-- NOVEL ATTACK / ZERO-DAY ALERT: Outlier detected via Mahalanobis/DBSCAN distance -->
+  <rule id="100205" level="13">
+    <if_sid>100200</if_sid>
+    <field name="ml_nids.is_novel_attack">true</field>
+    <description>ML-NIDS CRITICAL: Zero-Day / Novel Attack Signature isolated! High Mahalanobis outlier score ($(ml_nids.anomaly_score)) from $(ml_nids.src_ip)</description>
+    <mitre>
+      <id>T1203</id>
+      <tactic>Execution</tactic>
+      <technique>Exploitation for Client Execution</technique>
+    </mitre>
+    <group>zero_day,novel_attack,active_response,</group>
+  </rule>
+
+</group>

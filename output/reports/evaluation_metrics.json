@@ -1,0 +1,459 @@
+{
+  "binary_comparison": [
+    {
+      "Model": "Unsupervised (Euclidean)",
+      "Accuracy": 69.59,
+      "Precision": 90.69,
+      "Recall (Detection Rate)": 51.91,
+      "F1-Score": 66.03,
+      "ROC-AUC": 0.8995,
+      "False Alarm Rate (FPR)": 7.04,
+      "True Positives": 6662,
+      "False Positives": 684,
+      "True Negatives": 9027,
+      "False Negatives": 6171
+    },
+    {
+      "Model": "Unsupervised (Mahalanobis)",
+      "Accuracy": 68.68,
+      "Precision": 90.47,
+      "Recall (Detection Rate)": 50.28,
+      "F1-Score": 64.63,
+      "ROC-AUC": 0.8964,
+      "False Alarm Rate (FPR)": 7.0,
+      "True Positives": 6452,
+      "False Positives": 680,
+      "True Negatives": 9031,
+      "False Negatives": 6381
+    },
+    {
+      "Model": "Unsupervised (DBSCAN)",
+      "Accuracy": 68.03,
+      "Precision": 97.34,
+      "Recall (Detection Rate)": 45.07,
+      "F1-Score": 61.61,
+      "ROC-AUC": 0.9476,
+      "False Alarm Rate (FPR)": 1.63,
+      "True Positives": 5784,
+      "False Positives": 158,
+      "True Negatives": 9553,
+      "False Negatives": 7049
+    },
+    {
+      "Model": "Unsupervised (Hybrid)",
+      "Accuracy": 71.79,
+      "Precision": 91.03,
+      "Recall (Detection Rate)": 55.97,
+      "F1-Score": 69.31,
+      "ROC-AUC": 0.9099,
+      "False Alarm Rate (FPR)": 7.29,
+      "True Positives": 7182,
+      "False Positives": 708,
+      "True Negatives": 9003,
+      "False Negatives": 5651
+    },
+    {
+      "Model": "Supervised (Random Forest)",
+      "Accuracy": 79.05,
+      "Precision": 97.02,
+      "Recall (Detection Rate)": 65.19,
+      "F1-Score": 77.98,
+      "ROC-AUC": 0.9669,
+      "False Alarm Rate (FPR)": 2.65,
+      "True Positives": 8366,
+      "False Positives": 257,
+      "True Negatives": 9454,
+      "False Negatives": 4467
+    },
+    {
+      "Model": "Supervised (XGBoost)",
+      "Accuracy": 79.86,
+      "Precision": 96.95,
+      "Recall (Detection Rate)": 66.72,
+      "F1-Score": 79.04,
+      "ROC-AUC": 0.9656,
+      "False Alarm Rate (FPR)": 2.77,
+      "True Positives": 8562,
+      "False Positives": 269,
+      "True Negatives": 9442,
+      "False Negatives": 4271
+    }
+  ],
+  "novel_attack_summary": [
+    {
+      "Model": "Euclidean",
+      "Known Attack Recall": 53.66,
+      "Novel Attack Recall (Zero-Day)": 47.68,
+      "Overall Attack Recall": 51.91
+    },
+    {
+      "Model": "Mahalanobis",
+      "Known Attack Recall": 52.72,
+      "Novel Attack Recall (Zero-Day)": 44.35,
+      "Overall Attack Recall": 50.28
+    },
+    {
+      "Model": "Hybrid (K-Means+Maha+DB)",
+      "Known Attack Recall": 55.19,
+      "Novel Attack Recall (Zero-Day)": 57.84,
+      "Overall Attack Recall": 55.97
+    },
+    {
+      "Model": "Random Forest",
+      "Known Attack Recall": 76.47,
+      "Novel Attack Recall (Zero-Day)": 37.87,
+      "Overall Attack Recall": 65.19
+    },
+    {
+      "Model": "XGBoost",
+      "Known Attack Recall": 78.27,
+      "Novel Attack Recall (Zero-Day)": 38.75,
+      "Overall Attack Recall": 66.72
+    }
+  ],
+  "novel_attack_breakdown": [
+    {
+      "Attack Name": "apache2",
+      "Category": "DoS",
+      "Samples": 737,
+      "Euclidean Det %": 69.9,
+      "Mahalanobis Det %": 66.2,
+      "Hybrid (K-Means+Maha+DB) Det %": 70.4,
+      "Random Forest Det %": 72.2,
+      "XGBoost Det %": 75.7
+    },
+    {
+      "Attack Name": "httptunnel",
+      "Category": "R2L",
+      "Samples": 133,
+      "Euclidean Det %": 21.1,
+      "Mahalanobis Det %": 18.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 20.3,
+      "Random Forest Det %": 7.5,
+      "XGBoost Det %": 5.3
+    },
+    {
+      "Attack Name": "mailbomb",
+      "Category": "DoS",
+      "Samples": 293,
+      "Euclidean Det %": 1.0,
+      "Mahalanobis Det %": 7.2,
+      "Hybrid (K-Means+Maha+DB) Det %": 8.9,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "mscan",
+      "Category": "Probe",
+      "Samples": 996,
+      "Euclidean Det %": 69.2,
+      "Mahalanobis Det %": 69.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 76.5,
+      "Random Forest Det %": 54.4,
+      "XGBoost Det %": 39.3
+    },
+    {
+      "Attack Name": "named",
+      "Category": "R2L",
+      "Samples": 17,
+      "Euclidean Det %": 41.2,
+      "Mahalanobis Det %": 41.2,
+      "Hybrid (K-Means+Maha+DB) Det %": 47.1,
+      "Random Forest Det %": 11.8,
+      "XGBoost Det %": 17.6
+    },
+    {
+      "Attack Name": "processtable",
+      "Category": "DoS",
+      "Samples": 685,
+      "Euclidean Det %": 28.8,
+      "Mahalanobis Det %": 12.6,
+      "Hybrid (K-Means+Maha+DB) Det %": 69.3,
+      "Random Forest Det %": 1.9,
+      "XGBoost Det %": 24.4
+    },
+    {
+      "Attack Name": "ps",
+      "Category": "U2R",
+      "Samples": 15,
+      "Euclidean Det %": 40.0,
+      "Mahalanobis Det %": 40.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 60.0,
+      "Random Forest Det %": 13.3,
+      "XGBoost Det %": 20.0
+    },
+    {
+      "Attack Name": "saint",
+      "Category": "Probe",
+      "Samples": 319,
+      "Euclidean Det %": 93.7,
+      "Mahalanobis Det %": 93.7,
+      "Hybrid (K-Means+Maha+DB) Det %": 93.7,
+      "Random Forest Det %": 98.4,
+      "XGBoost Det %": 99.7
+    },
+    {
+      "Attack Name": "sendmail",
+      "Category": "R2L",
+      "Samples": 14,
+      "Euclidean Det %": 78.6,
+      "Mahalanobis Det %": 78.6,
+      "Hybrid (K-Means+Maha+DB) Det %": 78.6,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "snmpgetattack",
+      "Category": "R2L",
+      "Samples": 178,
+      "Euclidean Det %": 5.1,
+      "Mahalanobis Det %": 5.1,
+      "Hybrid (K-Means+Maha+DB) Det %": 5.1,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "snmpguess",
+      "Category": "R2L",
+      "Samples": 331,
+      "Euclidean Det %": 0.3,
+      "Mahalanobis Det %": 0.6,
+      "Hybrid (K-Means+Maha+DB) Det %": 0.3,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "sqlattack",
+      "Category": "U2R",
+      "Samples": 2,
+      "Euclidean Det %": 100.0,
+      "Mahalanobis Det %": 100.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 100.0,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "udpstorm",
+      "Category": "DoS",
+      "Samples": 2,
+      "Euclidean Det %": 0.0,
+      "Mahalanobis Det %": 0.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 0.0,
+      "Random Forest Det %": 100.0,
+      "XGBoost Det %": 100.0
+    },
+    {
+      "Attack Name": "worm",
+      "Category": "R2L",
+      "Samples": 2,
+      "Euclidean Det %": 0.0,
+      "Mahalanobis Det %": 0.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 0.0,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "xlock",
+      "Category": "R2L",
+      "Samples": 9,
+      "Euclidean Det %": 88.9,
+      "Mahalanobis Det %": 88.9,
+      "Hybrid (K-Means+Maha+DB) Det %": 88.9,
+      "Random Forest Det %": 0.0,
+      "XGBoost Det %": 0.0
+    },
+    {
+      "Attack Name": "xsnoop",
+      "Category": "R2L",
+      "Samples": 4,
+      "Euclidean Det %": 75.0,
+      "Mahalanobis Det %": 75.0,
+      "Hybrid (K-Means+Maha+DB) Det %": 75.0,
+      "Random Forest Det %": 25.0,
+      "XGBoost Det %": 25.0
+    },
+    {
+      "Attack Name": "xterm",
+      "Category": "U2R",
+      "Samples": 13,
+      "Euclidean Det %": 76.9,
+      "Mahalanobis Det %": 76.9,
+      "Hybrid (K-Means+Maha+DB) Det %": 76.9,
+      "Random Forest Det %": 15.4,
+      "XGBoost Det %": 23.1
+    }
+  ],
+  "multiclass": {
+    "categories": [
+      "DoS",
+      "Normal",
+      "Probe",
+      "R2L",
+      "U2R"
+    ],
+    "rf_report": {
+      "DoS": {
+        "precision": 0.9610934093577058,
+        "recall": 0.7684365781710915,
+        "f1-score": 0.854034721704791,
+        "support": 7458.0
+      },
+      "Normal": {
+        "precision": 0.6430076823713373,
+        "recall": 0.9739470703326125,
+        "f1-score": 0.7746109746109746,
+        "support": 9711.0
+      },
+      "Probe": {
+        "precision": 0.8346681922196796,
+        "recall": 0.6026435357290376,
+        "f1-score": 0.6999280402974334,
+        "support": 2421.0
+      },
+      "R2L": {
+        "precision": 0.983739837398374,
+        "recall": 0.04191201939729823,
+        "f1-score": 0.08039867109634552,
+        "support": 2887.0
+      },
+      "U2R": {
+        "precision": 1.0,
+        "recall": 0.014925373134328358,
+        "f1-score": 0.029411764705882353,
+        "support": 67.0
+      },
+      "accuracy": 0.7438786373314408,
+      "macro avg": {
+        "precision": 0.8845018242694194,
+        "recall": 0.48037291535287363,
+        "f1-score": 0.4876768344830853,
+        "support": 22544.0
+      },
+      "weighted avg": {
+        "precision": 0.8135144985109465,
+        "recall": 0.7438786373314408,
+        "f1-score": 0.7017497101744161,
+        "support": 22544.0
+      }
+    },
+    "xgb_report": {
+      "DoS": {
+        "precision": 0.9638721630384437,
+        "recall": 0.8370876910699919,
+        "f1-score": 0.8960172228202368,
+        "support": 7458.0
+      },
+      "Normal": {
+        "precision": 0.6789466110231688,
+        "recall": 0.9716815981876222,
+        "f1-score": 0.7993561777288323,
+        "support": 9711.0
+      },
+      "Probe": {
+        "precision": 0.8040775733465937,
+        "recall": 0.667905824039653,
+        "f1-score": 0.7296931407942239,
+        "support": 2421.0
+      },
+      "R2L": {
+        "precision": 0.9932432432432432,
+        "recall": 0.05091790786283339,
+        "f1-score": 0.09686985172981878,
+        "support": 2887.0
+      },
+      "U2R": {
+        "precision": 0.7,
+        "recall": 0.1044776119402985,
+        "f1-score": 0.18181818181818182,
+        "support": 67.0
+      },
+      "accuracy": 0.774041873669269,
+      "macro avg": {
+        "precision": 0.8280279181302899,
+        "recall": 0.5264141266200799,
+        "f1-score": 0.5407509149782588,
+        "support": 22544.0
+      },
+      "weighted avg": {
+        "precision": 0.8269550292717377,
+        "recall": 0.774041873669269,
+        "f1-score": 0.7320562661331901,
+        "support": 22544.0
+      }
+    },
+    "rf_cm": [
+      [
+        5731,
+        1626,
+        101,
+        0,
+        0
+      ],
+      [
+        67,
+        9458,
+        186,
+        0,
+        0
+      ],
+      [
+        165,
+        797,
+        1459,
+        0,
+        0
+      ],
+      [
+        0,
+        2764,
+        2,
+        121,
+        0
+      ],
+      [
+        0,
+        64,
+        0,
+        2,
+        1
+      ]
+    ],
+    "xgb_cm": [
+      [
+        6243,
+        1030,
+        185,
+        0,
+        0
+      ],
+      [
+        68,
+        9436,
+        205,
+        1,
+        1
+      ],
+      [
+        166,
+        638,
+        1617,
+        0,
+        0
+      ],
+      [
+        0,
+        2734,
+        4,
+        147,
+        2
+      ],
+      [
+        0,
+        60,
+        0,
+        0,
+        7
+      ]
+    ]
+  }
+}

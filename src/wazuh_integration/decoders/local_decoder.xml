@@ -1,0 +1,14 @@
+<!-- 
+  Custom Wazuh Decoders for ML Network Intrusion & Cyber Attack Detection
+  Place in /var/ossec/etc/decoders/local_decoder.xml on Wazuh Manager
+-->
+
+<decoder name="ml_nids_json">
+  <prematch>^{\s*"timestamp"</prematch>
+</decoder>
+
+<!-- Wazuh automatically extracts nested fields from JSON when log_format is json -->
+<decoder name="ml_nids_fields">
+  <parent>ml_nids_json</parent>
+  <plugin_decoder>JSON_Decoder</plugin_decoder>
+</decoder>
