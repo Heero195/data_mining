@@ -237,8 +237,8 @@ Khởi động lại Wazuh Agent:
 
 ### Bước 3: Xem mô hình hoạt động và đẩy cảnh báo lên SOC Dashboard
 Chạy công cụ phát lưu lượng mạng giả lập:
-```powershell
-python main.py --wazuh-demo
+```
+
 ```
 
 **Mẫu log JSON sinh ra theo thời gian thực:**
