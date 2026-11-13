@@ -306,16 +306,7 @@ d:\data_miner\dtd/
 ```
 
 ### Các lệnh thực thi:
-```powershell
-# 1. Chạy trọn vẹn toàn bộ quy trình (Tiền xử lý -> Huấn luyện -> Đánh giá -> Xuất biểu đồ -> Replay Wazuh)
-python main.py --all
+```
+# python pipeline_sieu_gon.py
 
-# 2. Chỉ chạy huấn luyện mô hình Unsupervised & Supervised
-python main.py --train
-
-# 3. Chỉ chạy đánh giá benchmark và cập nhật các biểu đồ đánh giá
-python main.py --eval
-
-# 4. Chỉ chạy giả lập phát lưu lượng cảnh báo vào file JSON cho Wazuh
-python main.py --wazuh-demo
 ```
