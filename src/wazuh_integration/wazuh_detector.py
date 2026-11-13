@@ -4,6 +4,7 @@ import socket
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import os
 
 from src.config import (
     MODELS_DIR,
@@ -128,6 +129,8 @@ class WazuhMLDetector:
         p.parent.mkdir(parents=True, exist_ok=True)
         with open(p, 'a', encoding='utf-8') as f:
             f.write(json.dumps(alert_event) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
 
     def send_syslog_to_wazuh(self, alert_event, host="127.0.0.1", port=514):
         """Sends alert as UDP syslog message to Wazuh Manager listener."""

@@ -23,7 +23,7 @@ Dự án được xây dựng theo chuỗi pipeline khép kín gồm 4 tầng:
 
 ---
 
-## 👤 THÀNH VIÊN 1: Kỹ sư Dữ liệu & Học máy Không giám sát (Data & Unsupervised Engine)
+## 👤 THÀNH VIÊN 1: Dữ liệu & Học máy Không giám sát (Data & Unsupervised Engine)
 > **Trách nhiệm chính**: Quản trị dữ liệu, tiền xử lý, khử nhiễu và phát triển động cơ phát hiện dị biệt / tấn công mới (Zero-Day Detection).
 
 ### 1. Nhiệm vụ kỹ thuật (Source Code & Pipeline)
@@ -58,7 +58,7 @@ Dự án được xây dựng theo chuỗi pipeline khép kín gồm 4 tầng:
 
 ---
 
-## 👤 THÀNH VIÊN 2: Kỹ sư Học máy Có giám sát & Đánh giá Đối sánh (Supervised & Benchmark)
+## 👤 THÀNH VIÊN 2: Học máy Có giám sát & Đánh giá Đối sánh (Supervised & Benchmark)
 > **Trách nhiệm chính**: Huấn luyện các mô hình phân loại tấn công đã biết, thiết kế hệ thống benchmark đối sánh và chứng minh tính hiệu quả của hệ thống.
 
 ### 1. Nhiệm vụ kỹ thuật (Source Code & Pipeline)

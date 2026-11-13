@@ -1,3 +1,10 @@
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import argparse
 import sys
 import numpy as np
@@ -21,6 +28,11 @@ def train_pipeline():
     # 1. Preprocessing
     X_train, y_train_cat, y_train_bin, df_train, X_test, y_test_cat, y_test_bin, df_test, preprocessor = get_preprocessed_data()
     
+    # Free test objects and large dataframes immediately to minimize RAM
+    import gc
+    del df_train, df_test, X_test, y_test_cat, y_test_bin
+    gc.collect()
+    
     # 2. Train Unsupervised Anomaly Detector (fit baseline normal profile)
     print("\n[Step 2/3] Training Unsupervised Anomaly Detector (K-Means + Mahalanobis + DBSCAN)...")
     mask_normal = (y_train_bin == 0)
@@ -36,9 +48,12 @@ def train_pipeline():
     unsup_detector.fit(X_normal_train)
     unsup_detector.save()
     
+    del X_normal_train
+    gc.collect()
+    
     # 3. Train Supervised Classifiers (Random Forest & XGBoost)
     print("\n[Step 3/3] Training Supervised Classifiers (Random Forest & XGBoost)...")
-    sup_classifiers = SupervisedIntrusionClassifiers(random_state=42)
+    sup_classifiers = SupervisedIntrusionClassifiers(random_state=42, n_jobs=2)
     sup_classifiers.fit(X_train, y_train_cat, y_train_bin, feature_names=preprocessor.feature_names)
     sup_classifiers.save()
     
@@ -113,6 +128,7 @@ def main():
     parser.add_argument("--eval", action="store_true", help="Run comparative evaluation and generate visualizations")
     parser.add_argument("--novel-eval", action="store_true", help="Run dedicated novel attack signature evaluation")
     parser.add_argument("--wazuh-demo", action="store_true", help="Run simulated traffic replay to Wazuh Homelab")
+    parser.add_argument("--wazuh-host", type=str, default=None, help="Wazuh Manager IP for direct network syslog streaming")
     parser.add_argument("--all", action="store_true", help="Execute complete pipeline (train, eval, wazuh demo)")
     
     args = parser.parse_args()
@@ -128,7 +144,7 @@ def main():
         eval_pipeline()
         
     if args.wazuh_demo or args.all:
-        run_traffic_replay(count=12, delay=0.1)
+        run_traffic_replay(count=15, delay=0.2, wazuh_host=args.wazuh_host)
 
 
 if __name__ == "__main__":

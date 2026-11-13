@@ -1,3 +1,4 @@
+import gc
 import numpy as np
 import joblib
 from pathlib import Path
@@ -13,47 +14,48 @@ class SupervisedIntrusionClassifiers:
     Supervised Intrusion Detection Models:
     1. Random Forest (Binary & Multi-class)
     2. XGBoost (Binary & Multi-class)
-    Features feature importance ranking, probability estimation, and persistence.
+    Optimized for low RAM footprint when running alongside VMs and IDEs.
     """
-    def __init__(self, random_state=42):
+    def __init__(self, random_state=42, n_jobs=2):
         self.random_state = random_state
+        self.n_jobs = n_jobs
         self.label_encoder = LabelEncoder()
         
-        # Binary Classifiers
+        # Binary Classifiers (n_estimators=60, max_depth=12 to protect RAM)
         self.rf_binary = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=16,
+            n_estimators=60,
+            max_depth=12,
             min_samples_split=5,
             random_state=random_state,
-            n_jobs=-1
+            n_jobs=n_jobs
         )
         self.xgb_binary = XGBClassifier(
-            n_estimators=100,
+            n_estimators=80,
             max_depth=6,
             learning_rate=0.1,
             subsample=0.8,
             colsample_bytree=0.8,
             random_state=random_state,
-            n_jobs=-1,
+            n_jobs=n_jobs,
             eval_metric='logloss'
         )
         
         # Multi-class Classifiers (5 classes: Normal, DoS, Probe, R2L, U2R)
         self.rf_multiclass = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=16,
+            n_estimators=60,
+            max_depth=12,
             min_samples_split=5,
             random_state=random_state,
-            n_jobs=-1
+            n_jobs=n_jobs
         )
         self.xgb_multiclass = XGBClassifier(
-            n_estimators=100,
+            n_estimators=80,
             max_depth=6,
             learning_rate=0.1,
             subsample=0.8,
             colsample_bytree=0.8,
             random_state=random_state,
-            n_jobs=-1,
+            n_jobs=n_jobs,
             eval_metric='mlogloss'
         )
         
@@ -62,10 +64,13 @@ class SupervisedIntrusionClassifiers:
 
     def fit(self, X_train, y_train_cat, y_train_bin, feature_names=None):
         """
-        Fits both binary and multi-class supervised models.
+        Fits both binary and multi-class supervised models with active garbage collection.
         """
-        print("[SupervisedClassifiers] Fitting Supervised Models...")
+        print("[SupervisedClassifiers] Fitting Supervised Models (Low-RAM Mode)...")
         self.feature_names = feature_names or [f"feat_{i}" for i in range(X_train.shape[1])]
+        
+        # Ensure contiguous float32 array
+        X_train = np.ascontiguousarray(X_train, dtype=np.float32)
         
         # Fit LabelEncoder on 5 categories
         y_train_cat_enc = self.label_encoder.fit_transform(y_train_cat)
@@ -74,18 +79,22 @@ class SupervisedIntrusionClassifiers:
         # 1. Fit Random Forest Binary
         print("  Fitting Random Forest (Binary: Normal vs Attack)...")
         self.rf_binary.fit(X_train, y_train_bin)
+        gc.collect()
         
         # 2. Fit XGBoost Binary
         print("  Fitting XGBoost (Binary: Normal vs Attack)...")
         self.xgb_binary.fit(X_train, y_train_bin)
+        gc.collect()
         
         # 3. Fit Random Forest Multi-class
         print("  Fitting Random Forest (5-Class Attack Categorization)...")
         self.rf_multiclass.fit(X_train, y_train_cat_enc)
+        gc.collect()
         
         # 4. Fit XGBoost Multi-class
         print("  Fitting XGBoost (5-Class Attack Categorization)...")
         self.xgb_multiclass.fit(X_train, y_train_cat_enc)
+        gc.collect()
         
         self.is_fitted = True
         print("[SupervisedClassifiers] All supervised models fitted successfully.")

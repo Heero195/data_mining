@@ -48,7 +48,7 @@ class UnsupervisedAnomalyDetector:
         
         self.is_fitted = False
 
-    def fit(self, X_normal, dbscan_sample_size=8000):
+    def fit(self, X_normal, dbscan_sample_size=2000):
         """
         Fits baseline normal profile on normal traffic connections.
         Args:
@@ -80,16 +80,26 @@ class UnsupervisedAnomalyDetector:
         else:
             X_db_sample = X_pca
             
-        db = DBSCAN(eps=self.dbscan_eps, min_samples=self.dbscan_min_samples).fit(X_db_sample)
-        if len(db.core_sample_indices_) > 0:
-            self.core_samples_ = X_db_sample[db.core_sample_indices_]
-            self.nn_core = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(self.core_samples_)
-            print(f"  DBSCAN fitted: {len(self.core_samples_)} core normal prototypes found")
-        else:
-            # Fallback to centroids if no core samples found
+        try:
+            db = DBSCAN(
+                eps=self.dbscan_eps, 
+                min_samples=self.dbscan_min_samples, 
+                algorithm='ball_tree', 
+                leaf_size=40
+            ).fit(X_db_sample)
+            
+            if len(db.core_sample_indices_) > 0:
+                self.core_samples_ = X_db_sample[db.core_sample_indices_]
+                self.nn_core = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(self.core_samples_)
+                print(f"  DBSCAN fitted: {len(self.core_samples_)} core normal prototypes found")
+            else:
+                self.core_samples_ = self.centroids_
+                self.nn_core = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(self.core_samples_)
+                print(f"  DBSCAN fallback: using {len(self.core_samples_)} centroids as core prototypes")
+        except (MemoryError, Exception) as e:
+            print(f"  [Notice] DBSCAN memory-safe fallback ({type(e).__name__}). Using {len(self.centroids_)} centroids as core prototypes.")
             self.core_samples_ = self.centroids_
             self.nn_core = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(self.core_samples_)
-            print(f"  DBSCAN fallback: using {len(self.core_samples_)} centroids as core prototypes")
             
         # 5. Calibrate baseline distance percentiles on normal training data
         dist_euc_norm = cdist(X_pca, self.centroids_, metric='euclidean').min(axis=1)

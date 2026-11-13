@@ -92,8 +92,8 @@ class NetworkDataPreprocessor:
         # Encode categorical features
         cat_encoded = self.encoder.transform(df_skewed[self.cat_cols])
         
-        # Concatenate
-        X = np.hstack([num_scaled, cat_encoded])
+        # Concatenate and cast to float32 to conserve 50% RAM
+        X = np.hstack([num_scaled, cat_encoded]).astype(np.float32, copy=False)
         return X
 
     def fit_transform(self, df_train):
