@@ -25,7 +25,7 @@ Các hệ thống phát hiện xâm nhập mạng truyền thống (như Snort, 
 * **Nhưng nếu hacker sử dụng chiêu thức mới (Zero-Day / Novel Attack)** mà hệ thống chưa từng ghi nhận $\rightarrow$ **Hệ thống bị "mù" hoàn toàn**.
 
 ### Giải pháp cốt lõi của Dự án:
-Dự án này kết hợp **2 trường phái Machine Learning** mạnh mẽ nhất:
+Dự án này kết hợp **2 trường phái Machine Learning**:
 1. **Có giám sát (Supervised - Random Forest / XGBoost)**: Rất nhạy bén và chuẩn xác đối với các cuộc tấn công **ĐÃ BIẾT (Known Attacks)**.
 2. **Không giám sát (Unsupervised - K-Means, DBSCAN, Mahalanobis & Euclidean Distance)**: Không cần biết hacker dùng kỹ thuật gì. Mô hình chỉ học **"Thế nào là lưu lượng mạng bình thường" (Baseline Profile)**. Bất kỳ kết nối nào có độ sai lệch vượt quá giới hạn bình thường $\rightarrow$ Lập tức bị cô lập và gắn cờ là **Bất thường / Tấn công Mới (Zero-Day)**!
 3. **Đưa vào SOC Wazuh**: Chuyển đổi toàn bộ dự đoán thành **Log sự kiện JSON chuẩn SOC** có gắn mã kỹ thuật **MITRE ATT&CK** để hiển thị và cảnh báo theo thời gian thực trên Wazuh Dashboard.
