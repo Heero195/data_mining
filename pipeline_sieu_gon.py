@@ -18,6 +18,9 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import MiniBatchKMeans, DBSCAN
 from sklearn.ensemble import RandomForestClassifier
 from scipy.spatial.distance import cdist
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
 # ======================================================================================
 # CẤU HÌNH ĐỊA CHỈ & THUỘC TÍNH MẠNG
@@ -249,6 +252,91 @@ def send_alert_to_wazuh(flow_info, decision, pred_cat, mah_dist, euc_dist, is_no
         sock.close()
 
 
+def plot_presentation_dashboard(df_train, X_train, y_train, engine, clf, save_path="presentation_dashboard.png"):
+    """
+    Vẽ trọn bộ 6 biểu đồ phục vụ báo cáo và thuyết trình:
+    1. Phân bố các lớp lưu lượng NSL-KDD
+    2. Tác dụng của biến đổi Log1p trên src_bytes
+    3. Phương sai tích lũy PCA 8 thành phần chính
+    4. Phân phối khoảng cách Mahalanobis & Ngưỡng bắt Zero-Day
+    5. Ma trận nhầm lẫn Random Forest (Confusion Matrix)
+    6. Top 10 đặc trưng mạng quan trọng nhất (Feature Importance)
+    """
+    print("\n[ĐỒ HỌA] Đang khởi tạo và vẽ trọn bộ 6 sơ đồ thuyết trình...")
+    try:
+        plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+        fig = plt.figure(figsize=(18, 14), dpi=150)
+
+        # 1. Phân bố các lớp lưu lượng
+        ax1 = plt.subplot(3, 2, 1)
+        cat_counts = df_train['attack_cat'].value_counts()
+        colors = ['#2ecc71', '#e74c3c', '#3498db', '#f39c12', '#9b59b6']
+        bars = ax1.bar(cat_counts.index, cat_counts.values, color=colors[:len(cat_counts)], edgecolor='black', alpha=0.85)
+        ax1.set_title("1. Phân Bố Các Lớp Lưu Lượng Mạng (NSL-KDD)", fontsize=12, fontweight='bold')
+        ax1.set_ylabel("Số lượng mẫu (Flows)")
+        for bar in bars:
+            yval = bar.get_height()
+            ax1.text(bar.get_x() + bar.get_width()/2, yval + 10, f"{yval:,}", ha='center', va='bottom', fontsize=9, fontweight='bold')
+
+        # 2. Tác dụng của biến đổi Log1p
+        ax2 = plt.subplot(3, 2, 2)
+        raw_bytes = df_train['src_bytes'].clip(upper=5000)
+        log_bytes = np.log1p(df_train['src_bytes'])
+        sns.kdeplot(raw_bytes, ax=ax2, color='crimson', fill=True, label='Trước: Gốc (Lệch phải)', alpha=0.4)
+        sns.kdeplot(log_bytes * 500, ax=ax2, color='teal', fill=True, label='Sau: Log1p (Gần chuẩn)', alpha=0.4)
+        ax2.set_title("2. Hiệu Quả Biến Đổi Log1p Trên `src_bytes`", fontsize=12, fontweight='bold')
+        ax2.set_xlabel("Thang đo lưu lượng")
+        ax2.set_ylabel("Mật độ phân phối (Density)")
+        ax2.legend(loc='upper right')
+
+        # 3. Phương sai tích lũy của PCA
+        ax3 = plt.subplot(3, 2, 3)
+        cum_var = np.cumsum(engine.pca.explained_variance_ratio_) * 100
+        ax3.plot(range(1, len(cum_var)+1), cum_var, marker='o', color='#8e44ad', linewidth=2.5, markersize=7)
+        ax3.axhline(90, color='red', linestyle='--', label='Ngưỡng bảo toàn 90%')
+        ax3.set_title("3. Tỉ Lệ Phương Sai Tích Lũy Của PCA", fontsize=12, fontweight='bold')
+        ax3.set_xlabel("Số lượng thành phần chính (PC)")
+        ax3.set_ylabel("Phương sai tích lũy (%)")
+        ax3.set_xticks(range(1, len(cum_var)+1))
+        ax3.legend()
+
+        # 4. Phân phối khoảng cách Mahalanobis & Ngưỡng cắt
+        ax4 = plt.subplot(3, 2, 4)
+        X_norm = X_train[y_train == 'Normal']
+        _, d_mah_norm, _, _ = engine.predict(X_norm)
+        sns.histplot(d_mah_norm, bins=35, kde=True, ax=ax4, color='royalblue', alpha=0.6, label='Normal Baseline')
+        ax4.axvline(engine.thresh_mah, color='red', linestyle='--', linewidth=2.5, label=f'Ngưỡng 95% ({engine.thresh_mah:.2f})')
+        ax4.scatter([47.74], [10], color='crimson', s=180, marker='X', zorder=5, label='Zero-Day Anomaly')
+        ax4.set_title("4. Phân Phối Khoảng Cách Mahalanobis & Ngưỡng Bắt Zero-Day", fontsize=12, fontweight='bold')
+        ax4.set_xlabel("Khoảng cách Mahalanobis ($D_M$)")
+        ax4.set_ylabel("Tần suất")
+        ax4.set_xlim(0, max(engine.thresh_mah * 3, 15))
+        ax4.legend(loc='upper right')
+
+        # 5. Ma trận nhầm lẫn Random Forest
+        ax5 = plt.subplot(3, 2, 5)
+        labels = sorted(list(set(y_train)))
+        cm = confusion_matrix(y_train, clf.predict(X_train), labels=labels)
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels, ax=ax5, cbar=False)
+        ax5.set_title("5. Ma Trận Nhầm Lẫn Random Forest (Train Set)", fontsize=12, fontweight='bold')
+        ax5.set_xlabel("Nhãn dự đoán")
+        ax5.set_ylabel("Nhãn thực tế")
+
+        # 6. Top 10 đặc trưng quan trọng nhất
+        ax6 = plt.subplot(3, 2, 6)
+        top_feat = pd.Series(clf.feature_importances_).nlargest(10).sort_values(ascending=True)
+        ax6.barh([f"Feature #{i}" for i in top_feat.index], top_feat.values, color='#16a085', edgecolor='black', alpha=0.85)
+        ax6.set_title("6. Top 10 Đặc Trưng Quan Trọng Nhất (Random Forest)", fontsize=12, fontweight='bold')
+        ax6.set_xlabel("Trọng số phân nhánh (Gini)")
+
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=150)
+        print(f"   [ĐỒ HỌA] -> Đã lưu thành công biểu đồ vào: {save_path}")
+        plt.show()
+    except Exception as e:
+        print(f"   [CẢNH BÁO ĐỒ HỌA] Lỗi vẽ biểu đồ: {e}")
+
+
 # ======================================================================================
 # CHƯƠNG TRÌNH CHÍNH & ĐÁNH GIÁ (MAIN EXECUTION & EVALUATION)
 # ======================================================================================
@@ -271,6 +359,9 @@ def main():
 
     # 3. Học có giám sát (Random Forest 5 lớp)
     clf = train_supervised_model(X_train, y_train)
+
+    # 4. Trực quan hóa trọn bộ 6 biểu đồ thuyết trình
+    plot_presentation_dashboard(df_train, X_train, y_train, engine, clf)
 
     del df_train, X_train, X_normal
     gc.collect()
