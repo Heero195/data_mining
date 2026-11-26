@@ -3,7 +3,6 @@ import numpy as np
 import joblib
 from pathlib import Path
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
 
 from src.config import MODELS_DIR
@@ -12,8 +11,7 @@ from src.config import MODELS_DIR
 class SupervisedIntrusionClassifiers:
     """
     Supervised Intrusion Detection Models:
-    1. Random Forest (Binary & Multi-class)
-    2. XGBoost (Binary & Multi-class)
+    - Random Forest (Binary & Multi-class)
     Optimized for low RAM footprint when running alongside VMs and IDEs.
     """
     def __init__(self, random_state=42, n_jobs=2):
@@ -21,7 +19,7 @@ class SupervisedIntrusionClassifiers:
         self.n_jobs = n_jobs
         self.label_encoder = LabelEncoder()
         
-        # Binary Classifiers (n_estimators=60, max_depth=12 to protect RAM)
+        # Binary Classifier (n_estimators=60, max_depth=12 to protect RAM)
         self.rf_binary = RandomForestClassifier(
             n_estimators=60,
             max_depth=12,
@@ -29,18 +27,8 @@ class SupervisedIntrusionClassifiers:
             random_state=random_state,
             n_jobs=n_jobs
         )
-        self.xgb_binary = XGBClassifier(
-            n_estimators=80,
-            max_depth=6,
-            learning_rate=0.1,
-            subsample=0.8,
-            colsample_bytree=0.8,
-            random_state=random_state,
-            n_jobs=n_jobs,
-            eval_metric='logloss'
-        )
         
-        # Multi-class Classifiers (5 classes: Normal, DoS, Probe, R2L, U2R)
+        # Multi-class Classifier (5 classes: Normal, DoS, Probe, R2L, U2R)
         self.rf_multiclass = RandomForestClassifier(
             n_estimators=60,
             max_depth=12,
@@ -48,25 +36,15 @@ class SupervisedIntrusionClassifiers:
             random_state=random_state,
             n_jobs=n_jobs
         )
-        self.xgb_multiclass = XGBClassifier(
-            n_estimators=80,
-            max_depth=6,
-            learning_rate=0.1,
-            subsample=0.8,
-            colsample_bytree=0.8,
-            random_state=random_state,
-            n_jobs=n_jobs,
-            eval_metric='mlogloss'
-        )
         
         self.feature_names = []
         self.is_fitted = False
 
     def fit(self, X_train, y_train_cat, y_train_bin, feature_names=None):
         """
-        Fits both binary and multi-class supervised models with active garbage collection.
+        Fits both binary and multi-class Random Forest models with active garbage collection.
         """
-        print("[SupervisedClassifiers] Fitting Supervised Models (Low-RAM Mode)...")
+        print("[SupervisedClassifiers] Fitting Random Forest Models (Low-RAM Mode)...")
         self.feature_names = feature_names or [f"feat_{i}" for i in range(X_train.shape[1])]
         
         # Ensure contiguous float32 array
@@ -81,52 +59,38 @@ class SupervisedIntrusionClassifiers:
         self.rf_binary.fit(X_train, y_train_bin)
         gc.collect()
         
-        # 2. Fit XGBoost Binary
-        print("  Fitting XGBoost (Binary: Normal vs Attack)...")
-        self.xgb_binary.fit(X_train, y_train_bin)
-        gc.collect()
-        
-        # 3. Fit Random Forest Multi-class
+        # 2. Fit Random Forest Multi-class
         print("  Fitting Random Forest (5-Class Attack Categorization)...")
         self.rf_multiclass.fit(X_train, y_train_cat_enc)
         gc.collect()
         
-        # 4. Fit XGBoost Multi-class
-        print("  Fitting XGBoost (5-Class Attack Categorization)...")
-        self.xgb_multiclass.fit(X_train, y_train_cat_enc)
-        gc.collect()
-        
         self.is_fitted = True
-        print("[SupervisedClassifiers] All supervised models fitted successfully.")
+        print("[SupervisedClassifiers] All Random Forest models fitted successfully.")
         return self
 
-    def predict_binary(self, X, model_name='xgboost'):
+    def predict_binary(self, X, model_name='rf'):
         """Returns binary predictions (0 = Normal, 1 = Attack) and attack probabilities."""
         if not self.is_fitted:
             raise ValueError("Supervised models must be fitted before prediction.")
             
-        model = self.xgb_binary if model_name.lower() == 'xgboost' else self.rf_binary
-        preds = model.predict(X)
-        probs = model.predict_proba(X)[:, 1]
+        preds = self.rf_binary.predict(X)
+        probs = self.rf_binary.predict_proba(X)[:, 1]
         return preds, probs
 
-    def predict_multiclass(self, X, model_name='xgboost'):
+    def predict_multiclass(self, X, model_name='rf'):
         """Returns predicted category string (Normal, DoS, Probe, R2L, U2R) and class probabilities."""
         if not self.is_fitted:
             raise ValueError("Supervised models must be fitted before prediction.")
             
-        model = self.xgb_multiclass if model_name.lower() == 'xgboost' else self.rf_multiclass
-        pred_enc = model.predict(X)
-        probs = model.predict_proba(X)
+        pred_enc = self.rf_multiclass.predict(X)
+        probs = self.rf_multiclass.predict_proba(X)
         pred_labels = self.label_encoder.inverse_transform(pred_enc)
         return pred_labels, probs
 
     def get_feature_importances(self, model_name='rf_binary', top_n=20):
-        """Returns a sorted dictionary of top N feature importances."""
+        """Returns a sorted list of top N feature importances."""
         if model_name == 'rf_binary':
             importances = self.rf_binary.feature_importances_
-        elif model_name == 'xgb_binary':
-            importances = self.xgb_binary.feature_importances_
         else:
             importances = self.rf_multiclass.feature_importances_
             

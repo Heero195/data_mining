@@ -33,8 +33,7 @@ class Visualizer:
             'Unsupervised (Euclidean)': '#e67e22',
             'Unsupervised (Mahalanobis)': '#9b59b6',
             'Unsupervised (Hybrid)': '#e74c3c',
-            'Supervised (Random Forest)': '#2980b9',
-            'Supervised (XGBoost)': '#27ae60'
+            'Supervised (Random Forest)': '#2980b9'
         }
         
         for name, data in models_data.items():
@@ -66,7 +65,7 @@ class Visualizer:
         df_melt = pd.melt(
             df_novel_detail,
             id_vars=['Attack Name', 'Category', 'Samples'],
-            value_vars=['Hybrid (K-Means+Maha+DB) Det %', 'XGBoost Det %', 'Random Forest Det %'],
+            value_vars=['Hybrid (K-Means+Maha+DB) Det %', 'Random Forest Det %'],
             var_name='Model',
             value_name='Detection Rate (%)'
         )
@@ -78,7 +77,7 @@ class Visualizer:
             x='Attack Name',
             y='Detection Rate (%)',
             hue='Model',
-            palette={'Hybrid (K-Means+Maha+DB)': '#e74c3c', 'XGBoost': '#27ae60', 'Random Forest': '#2980b9'}
+            palette={'Hybrid (K-Means+Maha+DB)': '#e74c3c', 'Random Forest': '#2980b9'}
         )
         
         plt.title("Detection Recall on 17 Novel Attack Signatures (Zero-Day Benchmark)", fontsize=14, fontweight='bold', pad=15)
@@ -172,22 +171,16 @@ class Visualizer:
         plt.close()
         print(f"[Visualizer] Saved feature importances to {out_path}")
 
-    def plot_confusion_matrices(self, cm_rf, cm_xgb, categories, filename="confusion_matrices.png"):
-        """Plots multi-class confusion matrices for Random Forest and XGBoost."""
-        fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
-        
-        sns.heatmap(cm_rf, annot=True, fmt='d', cmap='Blues', xticklabels=categories, yticklabels=categories, ax=axes[0])
-        axes[0].set_title("Random Forest - 5-Class Confusion Matrix", fontweight='bold')
-        axes[0].set_xlabel("Predicted Category")
-        axes[0].set_ylabel("True Category")
-        
-        sns.heatmap(cm_xgb, annot=True, fmt='d', cmap='Greens', xticklabels=categories, yticklabels=categories, ax=axes[1])
-        axes[1].set_title("XGBoost - 5-Class Confusion Matrix", fontweight='bold')
-        axes[1].set_xlabel("Predicted Category")
-        axes[1].set_ylabel("True Category")
+    def plot_confusion_matrices(self, cm_rf, categories, filename="confusion_matrices.png"):
+        """Plots multi-class confusion matrix for Random Forest."""
+        plt.figure(figsize=(7, 5.5))
+        sns.heatmap(cm_rf, annot=True, fmt='d', cmap='Blues', xticklabels=categories, yticklabels=categories)
+        plt.title("Random Forest - 5-Class Confusion Matrix", fontweight='bold')
+        plt.xlabel("Predicted Category")
+        plt.ylabel("True Category")
         
         plt.tight_layout()
         out_path = self.output_dir / filename
         plt.savefig(out_path, dpi=300)
         plt.close()
-        print(f"[Visualizer] Saved confusion matrices to {out_path}")
+        print(f"[Visualizer] Saved confusion matrix to {out_path}")

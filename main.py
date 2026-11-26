@@ -51,8 +51,8 @@ def train_pipeline():
     del X_normal_train
     gc.collect()
     
-    # 3. Train Supervised Classifiers (Random Forest & XGBoost)
-    print("\n[Step 3/3] Training Supervised Classifiers (Random Forest & XGBoost)...")
+    # 3. Train Supervised Classifiers (Random Forest)
+    print("\n[Step 3/3] Training Supervised Classifier (Random Forest)...")
     sup_classifiers = SupervisedIntrusionClassifiers(random_state=42, n_jobs=2)
     sup_classifiers.fit(X_train, y_train_cat, y_train_bin, feature_names=preprocessor.feature_names)
     sup_classifiers.save()
@@ -111,10 +111,9 @@ def eval_pipeline():
     feat_imps = sup_classifiers.get_feature_importances(model_name='rf_binary', top_n=15)
     viz.plot_feature_importance(feat_imps)
     
-    # 5. Confusion Matrices
+    # 5. Confusion Matrix
     viz.plot_confusion_matrices(
         multiclass_res['rf_cm'],
-        multiclass_res['xgb_cm'],
         multiclass_res['categories']
     )
     

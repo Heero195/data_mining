@@ -35,7 +35,6 @@ class Evaluator:
         - DBSCAN Core Outlier
         - Hybrid Unsupervised Detector
         - Random Forest (Binary)
-        - XGBoost (Binary)
         """
         print("[Evaluator] Computing binary anomaly detection metrics...")
         
@@ -52,15 +51,13 @@ class Evaluator:
         
         # Supervised predictions & probabilities
         pred_rf, prob_rf = self.sup.predict_binary(X_test, model_name='rf')
-        pred_xgb, prob_xgb = self.sup.predict_binary(X_test, model_name='xgboost')
         
         models = {
             'Unsupervised (Euclidean)': {'pred': pred_euc, 'score': score_euc},
             'Unsupervised (Mahalanobis)': {'pred': pred_mah, 'score': score_mah},
             'Unsupervised (DBSCAN)': {'pred': pred_db, 'score': dists['dist_dbscan_core']},
             'Unsupervised (Hybrid)': {'pred': pred_hybrid, 'score': score_hybrid},
-            'Supervised (Random Forest)': {'pred': pred_rf, 'score': prob_rf},
-            'Supervised (XGBoost)': {'pred': pred_xgb, 'score': prob_xgb}
+            'Supervised (Random Forest)': {'pred': pred_rf, 'score': prob_rf}
         }
         
         results = []
@@ -116,14 +113,12 @@ class Evaluator:
         pred_mah = self.unsup.predict(X_test, metric='mahalanobis')
         pred_hybrid = self.unsup.predict(X_test, metric='hybrid')
         pred_rf, _ = self.sup.predict_binary(X_test, model_name='rf')
-        pred_xgb, _ = self.sup.predict_binary(X_test, model_name='xgboost')
         
         preds_dict = {
             'Euclidean': pred_euc,
             'Mahalanobis': pred_mah,
             'Hybrid (K-Means+Maha+DB)': pred_hybrid,
-            'Random Forest': pred_rf,
-            'XGBoost': pred_xgb
+            'Random Forest': pred_rf
         }
         
         # 1. Summary comparison: Known vs Novel
@@ -170,22 +165,15 @@ class Evaluator:
         print("[Evaluator] Evaluating supervised 5-class classification...")
         
         rf_preds, _ = self.sup.predict_multiclass(X_test, model_name='rf')
-        xgb_preds, _ = self.sup.predict_multiclass(X_test, model_name='xgboost')
-        
         cats = sorted(list(set(y_test_cat)))
         
         rep_rf = classification_report(y_test_cat, rf_preds, labels=cats, output_dict=True, zero_division=0)
-        rep_xgb = classification_report(y_test_cat, xgb_preds, labels=cats, output_dict=True, zero_division=0)
-        
         cm_rf = confusion_matrix(y_test_cat, rf_preds, labels=cats)
-        cm_xgb = confusion_matrix(y_test_cat, xgb_preds, labels=cats)
         
         return {
             'categories': cats,
             'rf_report': rep_rf,
-            'xgb_report': rep_xgb,
-            'rf_cm': cm_rf.tolist(),
-            'xgb_cm': cm_xgb.tolist()
+            'rf_cm': cm_rf.tolist()
         }
 
     def generate_full_report(self, X_test, df_test):
@@ -224,9 +212,9 @@ class Evaluator:
             f.write(df_to_md(df_novel_sum, index=False))
             f.write("\n\n### Detailed Breakdown Per Novel Attack Signature\n\n")
             f.write(df_to_md(df_novel_detail, index=False))
-            f.write("\n\n## 3. Supervised 5-Class Categorization (XGBoost)\n\n")
-            xgb_rep_df = pd.DataFrame(multiclass_res['xgb_report']).transpose()
-            f.write(df_to_md(xgb_rep_df, index=True))
+            f.write("\n\n## 3. Supervised 5-Class Categorization (Random Forest)\n\n")
+            rf_rep_df = pd.DataFrame(multiclass_res['rf_report']).transpose()
+            f.write(df_to_md(rf_rep_df, index=True))
             f.write("\n")
             
         print(f"[Evaluator] Reports saved to:\n  - {json_path}\n  - {md_path}")
