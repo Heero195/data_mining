@@ -26,7 +26,7 @@ Các hệ thống phát hiện xâm nhập mạng truyền thống (như Snort, 
 
 ### Giải pháp cốt lõi của Dự án:
 Dự án này kết hợp **2 trường phái Machine Learning**:
-1. **Có giám sát (Supervised - Random Forest / XGBoost)**: Rất nhạy bén và chuẩn xác đối với các cuộc tấn công **ĐÃ BIẾT (Known Attacks)**.
+1. **Có giám sát (Supervised - Random Forest)**: Rất nhạy bén và chuẩn xác đối với các cuộc tấn công **ĐÃ BIẾT (Known Attacks)**.
 2. **Không giám sát (Unsupervised - K-Means, DBSCAN, Mahalanobis & Euclidean Distance)**: Không cần biết hacker dùng kỹ thuật gì. Mô hình chỉ học **"Thế nào là lưu lượng mạng bình thường" (Baseline Profile)**. Bất kỳ kết nối nào có độ sai lệch vượt quá giới hạn bình thường $\rightarrow$ Lập tức bị cô lập và gắn cờ là **Bất thường / Tấn công Mới (Zero-Day)**!
 3. **Đưa vào SOC Wazuh**: Chuyển đổi toàn bộ dự đoán thành **Log sự kiện JSON chuẩn SOC** có gắn mã kỹ thuật **MITRE ATT&CK** để hiển thị và cảnh báo theo thời gian thực trên Wazuh Dashboard.
 
@@ -34,7 +34,7 @@ Dự án này kết hợp **2 trường phái Machine Learning**:
 flowchart TD
     A["Lưu Lượng Mạng (Raw Traffic / NSL-KDD)"] --> B["Tiền Xử Lý (Log1p, OneHot, StandardScaler)"]
     B --> C["Unsupervised Baseline (K-Means, DBSCAN, Mahalanobis)"]
-    B --> D["Supervised Classifiers (Random Forest, XGBoost)"]
+    B --> D["Supervised Classifier (Random Forest)"]
     C --> E["Đo Khoảng Cách Lệch Tâm & Điểm Dị Biệt (0 - 100)"]
     D --> F["Phân Loại 5 Nhóm Tấn Công (DoS, Probe, R2L, U2R)"]
     E & F --> G["Wazuh ML Engine (Đánh giá Zero-Day & Gán nhãn MITRE ATT&CK)"]
@@ -78,7 +78,7 @@ Bộ dữ liệu **NSL-KDD** (phiên bản nâng cấp giải quyết lỗi trù
 * Sử dụng Python 3.10+ trên VS Code.
 * Thư viện chính:
   * Tính toán & dữ liệu: `numpy`, `pandas`, `scipy` (tính hàm ma trận khoảng cách `cdist`).
-  * Trí tuệ nhân tạo: `scikit-learn` (`OneHotEncoder`, `StandardScaler`, `MiniBatchKMeans`, `DBSCAN`, `PCA`, `RandomForestClassifier`), `xgboost` (`XGBClassifier`).
+  * Trí tuệ nhân tạo: `scikit-learn` (`OneHotEncoder`, `StandardScaler`, `MiniBatchKMeans`, `DBSCAN`, `PCA`, `RandomForestClassifier`).
   * Trực quan hóa: `matplotlib`, `seaborn`.
 
 ---
@@ -124,7 +124,7 @@ Máy tính không thể hiểu trực tiếp các chuỗi văn bản như `"tcp"
 ### Giai đoạn 4: Huấn luyện Mô hình Có giám sát (Supervised Baseline)
 *Mã nguồn tại:* [`src/supervised.py`](file:///d:/data_miner/dtd/src/supervised.py)
 
-* Xây dựng **Random Forest** và **XGBoost** để làm cơ sở đối chiếu (Benchmark).
+* Xây dựng **Random Forest** để làm cơ sở đối chiếu (Benchmark).
 * Huấn luyện cho 2 bài toán:
   * **Nhị phân (Binary)**: Kết nối là Bình thường (0) hay Tấn công (1).
   * **Đa lớp (5-Class)**: Dự đoán cụ thể nhóm tấn công (`Normal`, `DoS`, `Probe`, `R2L`, `U2R`).
@@ -138,7 +138,7 @@ Máy tính không thể hiểu trực tiếp các chuỗi văn bản như `"tcp"
 Điểm mấu chốt thể hiện giá trị học thuật và thực tiễn của đề tài:
 * Trong tập `KDDTest+.txt` có **17 loại tấn công mới (Novel Attacks)** không hề xuất hiện trong tập Train (`processtable`, `mscan`, `mailbomb`, `sendmail`, `snmpguess`, `sqlattack`, `xterm`...).
 * Đánh giá so sánh:
-  * **Mô hình Supervised (XGBoost / Random Forest)** có bị "mù" trước các đòn tấn công mới này không?
+  * **Mô hình Supervised (Random Forest)** có bị "mù" trước các đòn tấn công mới này không?
   * **Mô hình Unsupervised (Khoảng cách Mahalanobis / Cụm)** có nhận diện được sự dị biệt so với baseline để cảnh báo không?
 
 ---
@@ -150,31 +150,29 @@ Thực nghiệm trên toàn bộ 22,544 kết nối của tập kiểm thử **N
 ### 4.1. So sánh tổng quan (Binary Classification)
 | Mô hình | Accuracy (%) | Precision (%) | Recall / DR (%) | F1-Score (%) | ROC-AUC | False Alarm Rate (FPR) (%) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Unsupervised (Euclidean)** | 69.59% | 90.69% | 51.91% | 66.03% | 0.8995 | 7.04% |
-| **Unsupervised (Mahalanobis)** | 68.68% | 90.47% | 50.28% | 64.63% | 0.8964 | 7.00% |
-| **Unsupervised (DBSCAN Outlier)** | 68.03% | **97.34%** | 45.07% | 61.61% | 0.9476 | **1.63%** |
-| **Unsupervised (Hybrid Engine)** | 71.79% | 91.03% | 55.97% | 69.31% | 0.9099 | 7.29% |
-| **Supervised (Random Forest)** | 79.05% | 97.02% | 65.19% | 77.98% | **0.9669** | 2.65% |
-| **Supervised (XGBoost)** | **79.86%** | 96.95% | **66.72%** | **79.04%** | 0.9656 | 2.77% |
+| **Unsupervised (Euclidean)** | 69.64% | 90.70% | 51.99% | 66.10% | 0.8995 | 7.04% |
+| **Unsupervised (Mahalanobis)** | 68.73% | 90.48% | 50.37% | 64.71% | 0.8964 | 7.00% |
+| **Unsupervised (DBSCAN)** | 76.34% | 90.94% | 64.90% | 75.74% | 0.9179 | 8.55% |
+| **Unsupervised (Hybrid Engine)** | **76.88%** | 90.36% | **66.48%** | **76.60%** | 0.9004 | 9.37% |
+| **Supervised (Random Forest)** | 76.14% | **96.72%** | 60.13% | 74.16% | **0.9632** | **2.70%** |
 
 ---
 
 ### 4.2. Điểm Mấu Chốt: Đánh Giá Trên 17 Chữ Ký Tấn Công Mới (Zero-Day)
 | Mô hình | Tấn công ĐÃ BIẾT (Known Recall) | Tấn công MỚI (Zero-Day Recall) | Độ sụt giảm hiệu năng |
 | :--- | :---: | :---: | :---: |
-| **Supervised (Random Forest)** | 76.47% | 37.87% | 🔴 *Sụt giảm nghiêm trọng (-38.60%)* |
-| **Supervised (XGBoost)** | **78.27%** | 38.75% | 🔴 *Sụt giảm nghiêm trọng (-39.52%)* |
-| **Unsupervised (Mahalanobis)** | 52.72% | 44.35% | 🟢 *Ổn định (-8.37%)* |
-| **Unsupervised (Euclidean)** | 53.66% | 47.68% | 🟢 *Ổn định (-5.98%)* |
-| **Unsupervised (Hybrid Engine)** | 55.19% | **57.84%** 🚀 | 🟢 **Vượt trội (+19.09% so với XGBoost)** |
+| **Supervised (Random Forest)** | **75.37%** | 23.23% | 🔴 *Sụt giảm nghiêm trọng (-52.14%)* |
+| **Unsupervised (Mahalanobis)** | 52.86% | 44.35% | 🟢 *Ổn định (-8.51%)* |
+| **Unsupervised (Euclidean)** | 53.79% | 47.63% | 🟢 *Ổn định (-6.16%)* |
+| **Unsupervised (Hybrid Engine)** | 66.88% | **65.49%** 🚀 | 🟢 **Vượt trội (+42.26% so với Random Forest)** |
 
-> 💡 **Kết luận chuyên sâu**: Mô hình có giám sát (Supervised) phụ thuộc vào chữ ký đã thấy. Khi gặp tấn công mới, độ nhạy của XGBoost tụt xuống còn **38.75%**. Ngược lại, **Unsupervised Hybrid Engine** duy trì độ nhạy **57.84%** nhờ đo độ lệch phân phối (Mahalanobis Outlier) so với baseline chuẩn!
+> 💡 **Kết luận chuyên sâu**: Mô hình có giám sát (Random Forest) phụ thuộc vào chữ ký đã thấy. Khi gặp tấn công mới, độ nhạy của Random Forest tụt xuống chỉ còn **23.23%**. Ngược lại, **Unsupervised Hybrid Engine** duy trì độ nhạy **65.49%** nhờ đo độ lệch phân phối (Mahalanobis + K-Means + DBSCAN) so với baseline chuẩn!
 >
 > *Khả năng bắt một số đòn tấn công mới tiêu biểu của Unsupervised Engine:*
-> - `processtable` (DoS novel, 685 mẫu): Random Forest bắt **1.9%**, XGBoost bắt **24.4%**, **Unsupervised bắt 69.3%**!
-> - `mscan` (Probe novel, 996 mẫu): XGBoost bắt 39.3%, **Unsupervised bắt 76.5%**!
-> - `sendmail` (R2L novel, 14 mẫu): Supervised bắt **0%**, **Unsupervised bắt 78.6%**!
-> - `sqlattack` (U2R novel, 2 mẫu): Supervised **0%**, **Unsupervised 100%**!
+> - `processtable` (DoS novel, 685 mẫu): Random Forest bắt **1.3%**, **Unsupervised Hybrid bắt 69.3%**!
+> - `mscan` (Probe novel, 996 mẫu): Random Forest bắt **38.3%**, **Unsupervised Hybrid bắt 82.8%**!
+> - `sendmail` (R2L novel, 14 mẫu): Random Forest bắt **0.0%**, **Unsupervised Hybrid bắt 78.6%**!
+> - `sqlattack` (U2R novel, 2 mẫu): Random Forest bắt **0.0%**, **Unsupervised Hybrid bắt 100.0%**!
 
 ---
 
@@ -287,7 +285,7 @@ d:\data_miner\dtd/
 │   ├── config.py                  # Cấu hình đường dẫn, schema 41 cột, danh mục MITRE ATT&CK
 │   ├── preprocess.py              # Xử lý One-Hot, Log(1+x), StandardScaler
 │   ├── unsupervised.py            # K-Means, DBSCAN, Mahalanobis Distance, Euclidean Distance
-│   ├── supervised.py              # Random Forest & XGBoost (Binary & Multi-class)
+│   ├── supervised.py              # Random Forest (Binary & Multi-class)
 │   ├── evaluate.py                # Engine benchmark và báo cáo Novel attack
 │   ├── visualize.py               # Xuất đồ thị ROC, phân phối khoảng cách, Confusion Matrix
 │   └── wazuh_integration/

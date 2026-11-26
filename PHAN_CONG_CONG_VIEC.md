@@ -63,7 +63,7 @@ Dự án được xây dựng theo chuỗi pipeline khép kín gồm 4 tầng:
 
 ### 1. Nhiệm vụ kỹ thuật (Source Code & Pipeline)
 * **Huấn luyện mô hình Supervised** ([`src/supervised.py`](file:///d:/data_miner/dtd/src/supervised.py)):
-  * Xây dựng và tinh chỉnh siêu tham số cho **Random Forest** và **XGBoost Classifier**.
+  * Xây dựng mô hình **Random Forest Classifier** với cấu hình tham số tối ưu tài nguyên (`n_estimators=60`, `max_depth=12`).
   * Giải quyết 2 bài toán:
     * **Binary Classification**: Phân loại nhị phân (Bình thường vs Tấn công).
     * **Multi-class Classification (5 Lớp)**: Phân loại chi tiết vào 5 nhóm hành vi (`Normal`, `DoS`, `Probe`, `R2L`, `U2R`).
@@ -82,7 +82,7 @@ Dự án được xây dựng theo chuỗi pipeline khép kín gồm 4 tầng:
 
 ### 3. Phân công Viết Báo cáo & Thuyết trình
 * **Nội dung viết Báo cáo (Word / LaTeX)**:
-  * Kiến trúc mô hình Random Forest & XGBoost trong bài toán phân loại xâm nhập mạng.
+  * Kiến trúc mô hình **Random Forest** trong bài toán phân loại xâm nhập mạng.
   * Phân tích Feature Importance (các đặc trưng nhạy cảm nhất với mã độc).
   * Chương Thực nghiệm & Thảo luận: Bảng so sánh hiệu năng, phân tích chi tiết khả năng nhận diện 17 đòn tấn công Novel.
 * **Khi thuyết trình / Vấn đáp**:
@@ -132,7 +132,7 @@ Dự án được xây dựng theo chuỗi pipeline khép kín gồm 4 tầng:
 | :--- | :--- | :--- | :--- |
 | **Vai trò** | Data Scientist & Anomaly Engineer | Machine Learning Benchmark Engineer | SecOps & SIEM Integration Engineer |
 | **Module phụ trách** | `preprocess.py`, `unsupervised.py`, `eda_exploration.py` | `supervised.py`, `evaluate.py`, `visualize.py` | `src/wazuh_integration/`, `main.py`, requirements |
-| **Kỹ thuật & Thuật toán** | PCA, K-Means, Mahalanobis Distance, DBSCAN | Random Forest, XGBoost, Multi-class, ROC-AUC | MITRE ATT&CK, XML Decoder/Rules, JSON Streaming |
+| **Kỹ thuật & Thuật toán** | PCA, K-Means, Mahalanobis Distance, DBSCAN | Random Forest, Multi-class, ROC-AUC | MITRE ATT&CK, XML Decoder/Rules, JSON Streaming |
 | **Deliverables chính** | Model Anomaly, Scaler pipeline, Anomaly Scores | Supervised Models, Báo cáo đối sánh Zero-Day, Plots | Wazuh SIEM Homelab, Alert pipeline, CLI Runner |
 | **Phần viết báo cáo** | Khảo sát dữ liệu, Tiền xử lý, Lý thuyết Unsupervised | Mô hình Supervised, Phân tích số liệu thực nghiệm | Kiến trúc SIEM Wazuh, Ánh xạ MITRE, Kết luận |
 | **Nhiệm vụ khi bảo vệ** | Trình bày luồng dữ liệu & cơ chế phát hiện dị biệt | Trình bày kết quả đo lường & năng lực bắt Novel Attack | Thuyết trình kiến trúc kết nối & **Trực tiếp Live Demo** |
